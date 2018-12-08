@@ -1,0 +1,75 @@
+dev_update_off ()
+read_image (ModelImage, 'C:/Users/Administrator/Desktop/model.bmp')
+rgb1_to_gray (ModelImage, ModelImage)
+dev_close_window ()
+dev_open_window_fit_image (ModelImage, 0, 0, -1, -1, WindowHandle)
+set_display_font (WindowHandle, 16, 'mono', 'true', 'false')
+
+
+* read_image (ModelImage1, 'C:/Users/Administrator/Desktop/t.bmp')
+* rgb1_to_gray (ModelImage1, Image)
+* get_image_size (Image, Width, Height)
+* dev_close_window ()
+* dev_open_window (0, 0, Width, Height, 'black', WindowHandle)
+* dev_display (Image)
+* draw_rectangle1(WindowHandle, Row, Column, Phi, Length1)
+* gen_rectangle1 (Rectangle, Row, Column, Phi, Length1)
+* reduce_domain (Image, Rectangle, ModelImage)
+* inspect_shape_model (ModelImage, ModelImages, ModelRegions, 6, 5)
+* area_center (Rectangle, Area, Row3, Column3)
+
+* 
+* Create and display the local deformable model
+*create_local_deformable_model (ModelImage, 'auto', [], [], 'auto', 0.5, [], 'auto', 0.5, [], 'auto', 'none', 'use_polarity', [40,60], 'auto', [], [], ModelID)
+*create_local_deformable_model (ModelImage, 'auto', [], [], 'auto', 1, [], 'auto', 1, [], 'auto', 'none', 'use_polarity', [40,60], 'auto', [], [], ModelID)
+create_local_deformable_model (ModelImage, 'auto', [], [], 'auto', 0.5, [], 'auto', 0.5, [], 'auto', 'none', 'use_polarity', 10, 5, [], [], ModelID)
+get_deformable_model_contours (ModelContours, ModelID, 1)
+area_center (ModelImage, Area, Row, Column)
+hom_mat2d_identity (HomMat2DIdentity)
+hom_mat2d_translate (HomMat2DIdentity, Row, Column, HomMat2DTranslate)
+affine_trans_contour_xld (MohdelContours, ContoursAffineTrans, HomMat2DTranslate)
+dev_set_line_width (2)
+dev_set_color ('yellow')
+dev_display (ModelImage)
+dev_display (ContoursAffineTrans)
+disp_message (WindowHandle, 'Model image and contours', 'window', 12, 12, 'black', 'true')
+disp_continue_message (WindowHandle, 'black', 'true')
+stop ()
+* 
+Smoothness := 19
+NumImages := 1
+for Index := 0 to NumImages by 1
+    read_image (Image, 'C:/Users/Administrator/Desktop/t.bmp')
+    *Image:=ImagePart
+    rgb1_to_gray (Image, Image)
+    dev_resize_window_fit_image (Image, 0, 0, -1, -1)
+    dev_display (Image)
+    disp_message (WindowHandle, 'Search...', 'window', 12, 12, 'black', 'true')
+    count_seconds (S1)
+    * Find the model in the deformed search image.
+    * As result, the rectified image, the respective
+    * vector field, and the found contours are queried.
+     *rotate_image (Image, Image, -90, 'constant')
+    *find_local_deformable_model (Image, ImageRectified, VectorField, DeformedContours, ModelID, rad(-120), rad(60), 1, 1, 1, 1, 0, 6, 0.7, 0, 0.1, ['vector_field','deformed_contours'], ['deformation_smoothness','expand_border','subpixel'], [Smoothness,0,0], Score, Row, Column)
+      find_local_deformable_model (Image, ImageRectified, VectorField, DeformedContours, ModelID, rad(-15), rad(15), 1, 1, 1, 1, 0.1,6, 0, 0, 0.9, ['image_rectified','vector_field','deformed_contours'], ['deformation_smoothness','expand_border','subpixel'], [Smoothness,0,0], Score, Row, Column)
+     * find_local_deformable_model (Image, ImageRectified, VectorField, DeformedContours, ModelID, rad(-15), rad(15), 0.7, 1, 0.7, 1, 0.9,6, 0, 0, 1, ['image_rectified','vector_field','deformed_contours'], ['deformation_smoothness','expand_border','subpixel'], [Smoothness,0,0], Score, Row, Column)
+    count_seconds (S2)
+    Time := S2 - S1
+    * Visualize the deformation as a mesh generated from
+    * the returned vector field
+    gen_warped_mesh (VectorField, WarpedMesh, Smoothness / 2)
+    dev_set_line_width (1)
+    dev_set_color ('yellow')
+    *dev_display (WarpedMesh)
+    Found[Index] := |Score|
+    dev_set_line_width (2)
+    dev_set_color ('green')
+    dev_display (Image)
+    dev_display (DeformedContours)
+    *disp_message (WindowHandle, |Score| + ' matches found in ' + Time$'1.2f' + ' s', 'window', 12, 12, 'black', 'true')
+    *disp_message (WindowHandle, 'Score: ' + Score$'.2f', 'image', 350, Column - 80, 'black', 'true')
+    if (Index < NumImages)
+        disp_continue_message (WindowHandle, 'black', 'true')
+        stop ()
+    endif
+endfor
